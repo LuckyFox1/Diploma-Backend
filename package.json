@@ -1,0 +1,28 @@
+{
+  "name": "application-name",
+  "version": "0.0.1",
+  "private": true,
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "engines": {
+    "node": "11.x"
+  },
+  "keywords": [
+    "geo-rating",
+    "heroku"
+  ],
+  "dependencies": {
+    "ajv": "^4.11.3",
+    "body-parser": "^1.16.1",
+    "cookie-parser": "^1.4.4",
+    "cors": "^2.8.5",
+    "express": "^4.14.1",
+    "jade": "*",
+    "md5": "^2.2.1",
+    "mongodb": "^2.2.24",
+    "mongoose": "^4.8.4",
+    "pg": "^7.11.0"
+  }
+}
