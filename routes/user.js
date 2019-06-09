@@ -20,20 +20,35 @@ router.post('/login', (req, res) => {
     })
 });
 
-router.get('/personalCabinet/patient/:id', (req, res) => {
+router.get('/personalCabinet/:role/:id', (req, res) => {
     let receptions = [], user = {};
-    pool.query(`select patient."userID", patient."name", patient."surname", patient."patronymic", patient."gender", 
-        patient."dateOfBirth", patient."phone", patient."address", patient."role", patient."image"
-        from public."User" as patient
-        where patient."userID" = ${req.params.id}`, (error, results) => {
+    const doctorProperties = req.params.role === 'doctor'
+        ? `, doctor."position", doctor."startWorkDay", doctor."endWorkDay", doctor."startDinner", doctor."endDinner", 
+        doctor."roomNumber", doctor."receptionDuration" `
+        : '';
+    const joinMedicalWorker = req.params.role === 'doctor'
+        ? ` join public."MedicalWorker" as doctor on doctor."userID" = u."userID"` : '';
+    pool.query(`select u."userID", u."name", u."surname", u."patronymic", u."gender", 
+        u."dateOfBirth", u."phone", u."address", u."role", u."image"${doctorProperties}
+        from public."User" as u ${joinMedicalWorker}
+        where u."userID" = ${req.params.id}`, (error, results) => {
         user = results.rows[0];
-
-        pool.query(`select reception."receptionID", reception."reason", reception."endReception",
+        const receptionQuery = req.params.role === 'patient'
+        ? `select reception."receptionID", reception."reason", reception."endReception",
         reception."startReception", reception."byOrder", doctor."name" as doctorName, doctor."surname" as doctorSurname, doctor."patronymic" as doctorPatronymic 
         from public."User" as patient
         join public."Reception" as reception on patient."userID" = reception."patientID"
         join public."User" as doctor on reception."medicalWorkerID" = doctor."userID"
-        where patient."userID" = ${req.params.id}`, (error, results) => {
+        where patient."userID" = ${req.params.id}`
+        : `select reception."receptionID", reception."reason", reception."endReception", reception."startReception", 
+        reception."byOrder", patient."name" as patientName, patient."surname" as patientSurname, 
+        patient."patronymic" as patientPatronymic 
+        from public."User" as doctor
+        join public."Reception" as reception on doctor."userID" = reception."medicalWorkerID"
+        join public."User" as patient on reception."patientID" = patient."userID"
+        where doctor."userID" = ${req.params.id}`;
+
+        pool.query(receptionQuery, (error, results) => {
             if (error) {
                 throw error;
             }
@@ -43,7 +58,7 @@ router.get('/personalCabinet/patient/:id', (req, res) => {
                 ID: el.
             }*/
             // res.status(200).json(results.rows);
-            receptions = results.rows;
+            receptions = results.rows ? results.rows : [];
 
             res.status(200).json({ receptions, user });
         });
