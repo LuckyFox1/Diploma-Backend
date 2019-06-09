@@ -5,4 +5,5 @@ module.exports = function (app) {
     app.use(require('./user'));
     app.use(require('./schedule'));
     app.use(require('./hospital'));
+    app.use(require('./lab'));
 };
